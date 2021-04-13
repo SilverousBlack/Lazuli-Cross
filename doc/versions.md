@@ -1,6 +1,14 @@
-# Version Goals
+# Versions Information
 
-## 0.0.1d
+## System Version
+
+### 0.0.1d [*current*]
+
+* Repository Launch
+* Development Launch
+## Version Goals
+
+### 0.0.1d
 
 * Repository setup
 * Division of Tasks
