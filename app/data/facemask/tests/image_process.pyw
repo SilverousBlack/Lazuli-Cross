@@ -57,7 +57,7 @@ def ImprovedSecondDerivativeEdgeDetection(target: Image.Image):
                 internal[i, j] = 127
             elif 1 <= density_prob < 2:
                 internal[i, j] = 63
-    internal = expand_dims(internal, axis=2)
+    internal = np.expand_dims(internal, axis=2)
     internal = np.insert(internal, 1, 255, axis=2).astype('uint8')
     internal = Image.fromarray(internal, 'LA')
     return internal
