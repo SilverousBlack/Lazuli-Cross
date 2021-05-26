@@ -1,26 +1,17 @@
 # Image Process Testing Routine
 # Not part of application, for research purposes only (comparison and algorithm testing)
 
-import math
-import random
-import numpy as np
-from numpy.lib.shape_base import expand_dims
-import scipy as sp
-
 # numerical manipulation and tensors
+import numpy as np
 import pandas as pd
 
 # image manipulation
-from PIL import Image, ImageFilter, ImageEnhance, ImageOps
-from scipy import ndimage
+from PIL import Image, ImageFilter, ImageEnhance
 
 # file paths
 import pathlib as pl
 import os
 import ntpath as ntp
-
-# threading
-from threading import Thread
 
 # timing
 from time import time_ns 
@@ -32,8 +23,16 @@ import argparse as ap
 import canny_edge_detection_fensiop as ced
 import image_process as ip
 
-GlobalDataFrame = pd.DataFrame(columns=["Name", "Process", "CaptureTime", "EdgesTime", "DeisolationTime", "TotalTime", "Author"])
-GlobalDataFrame = GlobalDataFrame.astype({"Name":"object", "Process":"object", "CaptureTime":"float64", "EdgesTime":"float64", "DeisolationTime":"float64", "TotalTime":"float64", "Author":"object"})
+GlobalDataFrame = pd.DataFrame(columns=["Name", "Process", 
+                                        "CaptureTime", "EdgesTime", "DeisolationTime",
+                                        "ErrorMass", "ErrorDensity", "ErrorTime",
+                                        "WhiteMass", "WhiteDensity", "WhiteTime",
+                                        "TotalTime", "Author"])
+GlobalDataFrame = GlobalDataFrame.astype({"Name":"object", "Process":"object",
+                                          "CaptureTime":"float64", "EdgesTime":"float64", "DeisolationTime":"float64", 
+                                          "ErrorMass":"float64", "ErrorDensity":"float64", "ErrorTime":"float64",
+                                          "WhiteMass":"float64", "WhiteDensity":"float64", "WhiteTime":"float64",
+                                          "TotalTime":"float64", "Author":"object"})
 
 def basic_routine(target: str, author: str):
     global GlobalDataFrame
@@ -62,6 +61,16 @@ def basic_routine(target: str, author: str):
     deisolated.save(local + "deisolated_" + result["Process"] + "_" + result["Name"] + ".jpg", "JPEG")
     sample.save(local + "sample_" + result["Process"] + "_" + result["Name"] + ".jpg", "JPEG")
     result["DeisolationTime"] = (time_ns() - end) / 1000000000
+    end = time_ns()
+    errmass, errdensity = ip.MeasureSampleError(edges)
+    result["ErrorMass"] = errmass
+    result["ErrorDensity"] = errdensity
+    result["ErrorTime"] = (time_ns() - end) / 1000000000
+    end = time_ns()
+    wmass, wdensity = ip.MeasureWhiteDensity(deisolated)
+    result["WhiteMass"] = wmass
+    result["WhiteDensity"] = wdensity
+    result["WhiteTime"] = (time_ns() - end) / 1000000000
     result["TotalTime"] = (time_ns() - start) / 1000000000
     result["Author"] = author
     GlobalDataFrame = GlobalDataFrame.append(result, ignore_index=True)
@@ -89,6 +98,16 @@ def basic_2d_routine(target: str, author: str):
     deisolated.save(local + "deisolated_" + result["Process"] + "_" + result["Name"] + ".jpg", "JPEG")
     sample.save(local + "sample_" + result["Process"] + "_" + result["Name"] + ".jpg", "JPEG")
     result["DeisolationTime"] = (time_ns() - end) / 1000000000
+    end = time_ns()
+    errmass, errdensity = ip.MeasureSampleError(edges)
+    result["ErrorMass"] = errmass
+    result["ErrorDensity"] = errdensity
+    result["ErrorTime"] = (time_ns() - end) / 1000000000
+    end = time_ns()
+    wmass, wdensity = ip.MeasureWhiteDensity(deisolated)
+    result["WhiteMass"] = wmass
+    result["WhiteDensity"] = wdensity
+    result["WhiteTime"] = (time_ns() - end) / 1000000000
     result["TotalTime"] = (time_ns() - start) / 1000000000
     result["Author"] = author
     GlobalDataFrame = GlobalDataFrame.append(result, ignore_index=True)
@@ -116,6 +135,16 @@ def filtered_2d_routine(target: str, author: str):
     deisolated.save(local + "deisolated_" + result["Process"] + "_" + result["Name"] + ".jpg", "JPEG")
     sample.save(local + "sample_" + result["Process"] + "_" + result["Name"] + ".jpg", "JPEG")
     result["DeisolationTime"] = (time_ns() - end) / 1000000000
+    end = time_ns()
+    errmass, errdensity = ip.MeasureSampleError(edges)
+    result["ErrorMass"] = errmass
+    result["ErrorDensity"] = errdensity
+    result["ErrorTime"] = (time_ns() - end) / 1000000000
+    end = time_ns()
+    wmass, wdensity = ip.MeasureWhiteDensity(deisolated)
+    result["WhiteMass"] = wmass
+    result["WhiteDensity"] = wdensity
+    result["WhiteTime"] = (time_ns() - end) / 1000000000
     result["TotalTime"] = (time_ns() - start) / 1000000000
     result["Author"] = author
     GlobalDataFrame = GlobalDataFrame.append(result, ignore_index=True)
@@ -143,39 +172,57 @@ def improved_2d_routine(target: str, author: str):
     deisolated.save(local + "deisolated_" + result["Process"] + "_" + result["Name"] + ".jpg", "JPEG")
     sample.save(local + "sample_" + result["Process"] + "_" + result["Name"] + ".jpg", "JPEG")
     result["DeisolationTime"] = (time_ns() - end) / 1000000000
+    end = time_ns()
+    errmass, errdensity = ip.MeasureSampleError(edges)
+    result["ErrorMass"] = errmass
+    result["ErrorDensity"] = errdensity
+    result["ErrorTime"] = (time_ns() - end) / 1000000000
+    end = time_ns()
+    wmass, wdensity = ip.MeasureWhiteDensity(deisolated)
+    result["WhiteMass"] = wmass
+    result["WhiteDensity"] = wdensity
+    result["WhiteTime"] = (time_ns() - end) / 1000000000
     result["TotalTime"] = (time_ns() - start) / 1000000000
     result["Author"] = author
     GlobalDataFrame = GlobalDataFrame.append(result, ignore_index=True)
 
 def main(author: str):
     global GlobalDataFrame
+    start = time_ns()
+    print(" " * 50, end="\r")
     var = os.path.dirname(os.path.realpath(__file__))
     targets = os.listdir(var + "\\var\\")
-    for target in targets:
-        cedthr = Thread(target=basic_routine, args=(var + "\\var\\" + target,), kwargs={"author": author})
-        b2dthr = Thread(target=basic_2d_routine, args=(var + "\\var\\" + target,), kwargs={"author": author})
-        f2dthr = Thread(target=filtered_2d_routine, args=(var + "\\var\\" + target,), kwargs={"author": author})
-        i2dthr = Thread(target=improved_2d_routine, args=(var + "\\var\\" + target,), kwargs={"author": author})
-        cedthr.start()
-        b2dthr.start()
-        f2dthr.start()
-        i2dthr.start()
-        cedthr.join()
-        b2dthr.join()
-        f2dthr.join()
-        i2dthr.join()
+    for i in range(len(targets)):
+        target = targets[i]
+        print("Processing {0:.2f} of {1} | {2:.2f}% | {3} | Time Consumed: {4:.2f} min".format(i + 1.0, int(len(targets)), float((i + 1.00) / len(targets)* 100), target, float(((time_ns() - start) / 1000000000) / 60)),  end="\r")
+        basic_routine(var + "\\var\\" + target, author)
+        print("Processing {0:.2f} of {1} | {2:.2f}% | {3} | Time Consumed: {4:.2f} min".format(i + 1.25, int(len(targets)), float((i + 1.25) / len(targets)* 100), target, float(((time_ns() - start) / 1000000000) / 60)),  end="\r")
+        basic_2d_routine(var + "\\var\\" + target, author)
+        print("Processing {0:.2f} of {1} | {2:.2f}% | {3} | Time Consumed: {4:.2f} min".format(i + 1.50, int(len(targets)), float((i + 1.50) / len(targets)* 100), target, float(((time_ns() - start) / 1000000000) / 60)),  end="\r")
+        filtered_2d_routine(var + "\\var\\" + target, author)
+        print("Processing {0:.2f} of {1} | {2:.2f}% | {3} | Time Consumed: {4:.2f} min".format(i + 1.75, int(len(targets)), float((i + 1.75) / len(targets)* 100), target, float(((time_ns() - start) / 1000000000) / 60)),  end="\r")
+        improved_2d_routine(var + "\\var\\" + target, author)
+        print(" " * 90, end = "\r")
+    print("Processed 25 images | Total Time Consumed: {0:.2f} min ".format(((time_ns() - start) / 1000000000) / 60))
     
 argparser = ap.ArgumentParser("Process Routine", description="A Routined Comparation of Processing Techniques")
 argparser.add_argument("--author", nargs=1, help="Specify the routine result author")
 
 if __name__ == "__main__":
-    res = argparser.parse_args()
-    author: str
-    if hasattr(res, "AUTHOR"):
-        author = res.AUTHOR
-    else:
-        author = input("Please enter result authorship name: ")
-    main(author)
-    print(GlobalDataFrame.head())
-    GlobalDataFrame.to_csv("process_routine_results.csv", index=False)
+    try:
+        res = argparser.parse_args()
+        author: str
+        if hasattr(res, "AUTHOR"):
+            author = res.AUTHOR
+        else:
+            author = input("Please enter result authorship name: ")
+        if pl.Path("process_routine_results.csv").exists():
+            GlobalDataFrame = pd.DataFrame(pd.read_csv("process_routine_results.csv"))
+        main(author)
+        print(GlobalDataFrame.head())
+        print(GlobalDataFrame.describe())
+        GlobalDataFrame.to_csv("process_routine_results.csv", index=False)
+        input("Press [Enter] to continue...")
+    except Exception as e:
+        print(str(e))
     input("Press [Enter] to continue...")
