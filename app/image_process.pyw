@@ -26,7 +26,7 @@ def MeasureSampleError(map: Image.Image):
         for j in range(width):
             if internal[i, j] != 0:
                 errormass += 256 / (internal[i, j] + 1)
-    return (errormass, errormass / (height * width))
+    return (errormass, errormass / (height * width));
 
 def MeasureWhiteDensity(map: Image.Image):
     width, height = map.size
