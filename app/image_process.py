@@ -26,7 +26,7 @@ def MeasureSampleError(map: Image.Image):
         for j in range(width):
             if internal[i, j] != 0:
                 errormass += 256 / (internal[i, j] + 1)
-    return (errormass, errormass / (height * width));
+    return (errormass, errormass / (height * width))
 
 def MeasureWhiteDensity(map: Image.Image):
     width, height = map.size
@@ -41,7 +41,6 @@ def MeasureWhiteDensity(map: Image.Image):
             ref = (np.max(internal[i, j]) * len(internal[i, j]))
             whitemass += mass / ref if ref != 0 else 0
     return (whitemass, whitemass / (height * width))
-            
 
 def ImprovedSecondDerivativeEdgeDetection(target: Image.Image):
     width, height = target.size
@@ -78,13 +77,14 @@ def ImprovedSecondDerivativeEdgeDetection(target: Image.Image):
                 internal[i, j] = 127
             elif 1 <= density_prob < 2:
                 internal[i, j] = 63
+            else:
+                internal[i, j] = 0
     internal = np.expand_dims(internal, axis=2)
     internal = np.insert(internal, 1, 255, axis=2).astype('uint8')
     internal = Image.fromarray(internal, 'LA')
-    return internal
+    return internal.copy()
 
-
-def ColorDeisolateRoutine(target: Image.Image, edges: Image.Image):
+def ColorDeisolationRoutine(target: Image.Image, edges: Image.Image):
     invr = np.array(ImageOps.invert(target), np.uint32)
     copy = np.array(target, np.uint32)
     edge = np.array(edges, np.uint32)[:, :, 0]
@@ -160,13 +160,3 @@ class ImageProcessor:
     
     def get_sample(self):
         return self._sesh_samp
-    
-processor = ImageProcessor("app/data/facemask/clyde/IMG_2658.jpg")
-c = getattr(processor, "_sesh_copy")
-e = getattr(processor, "_sesh_edge")
-p = getattr(processor, "_sesh_proc")
-s = getattr(processor, "_sesh_samp")
-c.show()
-e.show()
-p.show()
-s.show()
