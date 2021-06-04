@@ -29,8 +29,38 @@ parser.add_argument("-author", type=str,
                        metavar="AU", nargs="+", default=CurrentUser,
                        help="Statistics authorship.")
 parser.add_argument("-pool_limit", type=int,
-                       metavar="TPL", default=int(os.cpu_count() * 3 // 4),
+                       metavar="TPL", default=int(os.cpu_count() // 2),
                        help="The limit of worker processes in the thread pool.")
+parser.add_argument("--disregard_records",
+                       action="store_true", default=False,
+                       help="Disregard previously recorded statistics.")
+
+def MeasureSampleError(target: Image.Image):
+    width, height = target.size
+    sampsz = int(min(height, width) // 2)
+    internal = (target.crop(((width - sampsz) // 2, (height - sampsz) // 2, (width + sampsz) // 2, (height + sampsz) // 2))).resize((sampsz * 2, sampsz * 2), Image.ANTIALIAS)
+    width, height = internal.size
+    internal = np.array(internal)[:, :, 0]
+    errormass = 0.0
+    for i in range(height):
+        for j in range(width):
+            if internal[i, j] != 0:
+                errormass += 256 / (internal[i, j] + 1)
+    return (errormass, errormass / (height * width))
+
+def MeasureWhiteDensity(target: Image.Image):
+    width, height = target.size
+    sampsz = int(min(height, width) // 2)
+    internal = (target.crop(((width - sampsz) // 2, (height - sampsz) // 2, (width + sampsz) // 2, (height + sampsz) // 2))).resize((sampsz * 2, sampsz * 2), Image.ANTIALIAS)
+    width, height = internal.size
+    internal = np.array(internal)
+    whitemass = 0.0
+    for i in range(height):
+        for j in range(width):
+            mass = internal[i, j].sum()
+            ref = (np.max(internal[i, j]) * len(internal[i, j]))
+            whitemass += mass / ref if ref != 0 else 0
+    return (whitemass, whitemass / (height * width))
 
 def ImprovedSecondDerivativeEdgeDetection(target: Image.Image):
     width, height = target.size
@@ -38,22 +68,26 @@ def ImprovedSecondDerivativeEdgeDetection(target: Image.Image):
     copy = target.filter(ImageFilter.UnsharpMask(blur_radius)).filter(ImageFilter.GaussianBlur(blur_radius))
     copy = (ImageEnhance.Contrast(target).enhance(1.75)).filter(ImageFilter.FIND_EDGES).convert("LA")
     copy = np.array(copy, np.uint32)[:, :, 0]
-    edgepx = copy[:, :].max()
+    edgepx = copy[:, :].max() + 1
     # edge denoising routine
-    for i in range(width):
-        for j in range(height):
-            if copy[i, j] >= (edgepx * 0.5):
-                copy[i, j] = 255
-            elif (edgepx * 0.25) >= copy[i, j] < (edgepx * 0.5):
-                copy[i, j] = 127
-            elif (edgepx * 0.125) >= copy[i, j] < (edgepx * 0.25):
-                copy[i, j] = 63
-            else:
-                copy[i, j] = 0
+    #for i in range(height):
+    #    for j in range(width):
+    #        if copy[i, j] >= (edgepx * 0.5):
+    #            copy[i, j] = 255
+    #        elif (edgepx * 0.25) <= copy[i, j] < (edgepx * 0.5):
+    #            copy[i, j] = 127
+    #        elif (edgepx * 0.125) <= copy[i, j] < (edgepx * 0.25):
+    #            copy[i, j] = 63
+    #        else:
+    #           copy[i, j] = 0
+    copy[copy >= (edgepx * 0.5)] = 255
+    copy[(copy >= (edgepx * 0.25)) & (copy < edgepx * 0.5)] = 127
+    copy[(copy >= (edgepx * 0.125)) & (copy < (edgepx * 0.25))] = 63
+    copy[copy < (edgepx * 0.125)] = 0
     # probability edge enhancement with edge denoising
-    internal = np.zeros((width, height), np.uint32)
-    for i in range(width):
-        for j in range(height):
+    internal = np.zeros((height, width), np.uint32)
+    for i in range(height):
+        for j in range(width):
             density_prob = 0.0
             try:
                 density_prob += ((copy[i - 1, j - 1] + 1) // 64) / 4
@@ -67,11 +101,11 @@ def ImprovedSecondDerivativeEdgeDetection(target: Image.Image):
                 density_prob += ((copy[i + 1, j + 1] + 1) // 64) / 4
             except:
                 pass
-            if density_prob >= 3.25:
+            if density_prob >= 3:
                 internal[i, j] = 255
-            elif 2 >= density_prob < 3.25:
+            elif 2 <= density_prob < 3:
                 internal[i, j] = 127
-            elif 1.25 >= density_prob < 2:
+            elif 1 <= density_prob < 2:
                 internal[i, j] = 63
             else:
                 internal[i, j] = 0
@@ -84,10 +118,10 @@ def ColorDeisolationRoutine(target: Image.Image, edges: Image.Image):
     invr = np.array(ImageOps.invert(target), np.uint32)
     copy = np.array(target, np.uint32)
     edge = np.array(edges, np.uint32)[:, :, 0]
-    width, height, depth = copy.shape
-    internal = np.zeros((width, height, depth), np.uint32)
-    for i in range(width):
-        for j in range(height):
+    height, width, depth = copy.shape
+    internal = np.zeros((height, width, depth), np.uint32)
+    for i in range(height):
+        for j in range(width):
             buf = copy[i, j] * 0.25
             if edge[i, j] == 127:
                 buf *= 2
@@ -104,14 +138,33 @@ def ColorDeisolationRoutine(target: Image.Image, edges: Image.Image):
 
 def process(target, targetfolder: pl.Path, outputfolder: pl.Path, author: str):
     global GlobalDataFrame
+    capture: Image.Image
+    edges: Image.Image
+    deisolated: Image.Image
+    sample: Image.Image
     results = {"Target": target, "Author": author}
     start = time_ns()
-    capture = Image.open(str(targetfolder) + "/" + target)
-    edges = ImprovedSecondDerivativeEdgeDetection(capture)
-    deisolated, sample = ColorDeisolationRoutine(capture, edges)
-    edges.save(str(outputfolder) + "/edges_" + target + ".png", "PNG")
-    deisolated.save(str(outputfolder) + "/deisolated_" + target + ".jpg", "JPEG")
-    sample.save(str(outputfolder) + "/sample_" + target + ".jpg", "JPEG")
+    try: 
+        capture = Image.open(str(targetfolder) + "/" + target)
+        (capture.transpose(Image.ROTATE_270)).save(str(outputfolder) + "/capture_" + target + ".jpg", "JPEG" )
+        edges = ImprovedSecondDerivativeEdgeDetection(capture)
+        ((edges.transpose(Image.ROTATE_270)).convert("RGB")).save(str(outputfolder) + "/edges_" + target + ".jpg", "JPEG")
+        deisolated, sample = ColorDeisolationRoutine(capture, edges)
+        (deisolated.transpose(Image.ROTATE_270)).save(str(outputfolder) + "/deisolated_" + target + ".jpg", "JPEG")
+        (sample.transpose(Image.ROTATE_270)).save(str(outputfolder) + "/sample_" + target + ".jpg", "JPEG")
+        LocalExecutor = fut.ThreadPoolExecutor(max_workers=2)
+        wstats = LocalExecutor.submit(MeasureWhiteDensity, deisolated)
+        estats = LocalExecutor.submit(MeasureSampleError, edges)
+        wm, wp = wstats.result()
+        em, ep = estats.result()
+        results["WhiteMass"] = wm
+        results["WhitePercent"] = wp
+        results["ErrorMass"] = em
+        results["ErrorPercent"] = ep
+    except Exception as e:
+        LocalExecutor.shutdown(wait=False, cancel_futures=True)
+        raise e
+    LocalExecutor.shutdown(wait=True, cancel_futures=False)
     results["TotalTime"] = time_ns() - start
     return results
 
@@ -120,11 +173,15 @@ def main(targetfolder: pl.Path, outputfolder: pl.Path, statistics_path: pl.Path,
     start = time_ns()
     targets = os.listdir(targetfolder)
     threads = {GlobalProcessPool.submit(process, target, targetfolder, outputfolder, author): target for target in targets}
-    pending = len(GlobalProcessPool._pending_work_items)
-    while pending > 0:
-        print(" " * 50, end="\r")
-        print("Pending {0} of {1} images | Time: {2:.2f}".format(pending, len(targets), (time_ns() - start) / 1000000000), end="\r")
-        pending = len(GlobalProcessPool._pending_work_items)
+    pending = len(GlobalProcessPool._pending_work_items) - len(GlobalProcessPool._processes)
+    ongoing = len(GlobalProcessPool._processes)
+    completed = len(targets) - (pending + ongoing)
+    while pending > 0 and ongoing > 0 and completed != len(targets):
+        print(" " * 90, end="\r")
+        print("Pending {0} of {1} images | Ongoing: {2} | Completed: {3} | Time: {4:.2f}".format(pending, len(targets), ongoing, completed, (time_ns() - start) / 1000000000), end="\r")
+        pending = len(GlobalProcessPool._pending_work_items) - len(GlobalProcessPool._processes)
+        ongoing = len(GlobalProcessPool._processes)
+        completed = len(targets) - (pending + ongoing)
         sleep(0.5)
     for future in fut.as_completed(threads):
         thr = threads[future]
@@ -132,12 +189,12 @@ def main(targetfolder: pl.Path, outputfolder: pl.Path, statistics_path: pl.Path,
         try:
             result = future.result()
         except Exception as e:
-            print("%r raised error: %s" % (thr, e))
-        else:
+            print("Process [%r] raised error: %s" % (thr, e))
+        finally:
             GlobalDataFrame.append(result, ignore_index=True)
     print(" " * 50, end="\r")
     print("Processed {0} images | Time: {1:.2f}".format(len(targets), (time_ns() - start) / 1000000000))
-    GlobalDataFrame.to_csv(str(statistics_path))
+    GlobalDataFrame.to_csv(str(statistics_path), index=False)
     GlobalProcessPool.shutdown(wait=True, cancel_futures=False)
 
 if __name__ == "__main__":
@@ -168,13 +225,17 @@ if __name__ == "__main__":
         OF.mkdir()
     if not SP.parent.exists():
         SP.parent.mkdir()
-    if SP.exists():
+    if SP.exists() and not res.disregard_records:
         GlobalDataFrame = pd.DataFrame(pd.read_csv(str(SP)))
     else:
-        GlobalDataFrame = pd.DataFrame(columns=["Target",
+        GlobalDataFrame = pd.DataFrame(columns=["Target", "Status",
+                                                "WhiteMass", "WhitePercent",
+                                                "ErrorMass", "ErrorPercent",
                                                 "TotalTime", "Author"])
-        GlobalDataFrame = GlobalDataFrame.astype({"Target": "object",
-                                                "TotalTime": "int64", "Author": "object"})
+        GlobalDataFrame = GlobalDataFrame.astype({"Target": "object", "Status": "object",
+                                                  "WhiteMass": "float64", "WhitePercent": "float64",
+                                                  "ErrorMass": "float64", "ErrorPercent": "float64",
+                                                  "TotalTime": "int64", "Author": "object"})
     print(bar)
     print("Target folder: {}".format(str(TF.absolute())))
     print("Output folder: {}".format(str(OF.absolute())))

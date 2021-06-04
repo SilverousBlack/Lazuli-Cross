@@ -120,7 +120,7 @@ class ImageProcessor:
             ratio = 1 / (max_s // 1000)
             self._sesh_copy = self._sesh_copy.resize((int(img_h * ratio), int(img_w * ratio)), Image.ANTIALIAS)
             self._sesh_edge = ImprovedSecondDerivativeEdgeDetection(self._sesh_copy)
-            self._sesh_proc, self._sesh_samp = ColorDeisolateRoutine(self._sesh_copy, self._sesh_edge)
+            self._sesh_proc, self._sesh_samp = ColorDeisolationRoutine(self._sesh_copy, self._sesh_edge)
         except Exception as e:
             del self._sesh_warn
             self._sesh_warn = str(e)
