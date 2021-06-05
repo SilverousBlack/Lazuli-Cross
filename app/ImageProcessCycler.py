@@ -35,33 +35,6 @@ parser.add_argument("--disregard_records",
                        action="store_true", default=False,
                        help="Disregard previously recorded statistics.")
 
-def MeasureSampleError(target: Image.Image):
-    width, height = target.size
-    sampsz = int(min(height, width) // 2)
-    internal = (target.crop(((width - sampsz) // 2, (height - sampsz) // 2, (width + sampsz) // 2, (height + sampsz) // 2))).resize((sampsz * 2, sampsz * 2), Image.ANTIALIAS)
-    width, height = internal.size
-    internal = np.array(internal)[:, :, 0]
-    errormass = 0.0
-    for i in range(height):
-        for j in range(width):
-            if internal[i, j] != 0:
-                errormass += 256 / (internal[i, j] + 1)
-    return (errormass, errormass / (height * width))
-
-def MeasureWhiteDensity(target: Image.Image):
-    width, height = target.size
-    sampsz = int(min(height, width) // 2)
-    internal = (target.crop(((width - sampsz) // 2, (height - sampsz) // 2, (width + sampsz) // 2, (height + sampsz) // 2))).resize((sampsz * 2, sampsz * 2), Image.ANTIALIAS)
-    width, height = internal.size
-    internal = np.array(internal)
-    whitemass = 0.0
-    for i in range(height):
-        for j in range(width):
-            mass = internal[i, j].sum()
-            ref = (np.max(internal[i, j]) * len(internal[i, j]))
-            whitemass += mass / ref if ref != 0 else 0
-    return (whitemass, whitemass / (height * width))
-
 def ImprovedSecondDerivativeEdgeDetection(target: Image.Image):
     width, height = target.size
     blur_radius = int((min(width, height) * 0.05) if (min(width, height) * 0.05) > 0 else (min(width, height) * 0.1))
@@ -137,7 +110,6 @@ def ColorDeisolationRoutine(target: Image.Image, edges: Image.Image):
     return (internal, samp)
 
 def process(target, targetfolder: pl.Path, outputfolder: pl.Path, author: str):
-    global GlobalDataFrame
     capture: Image.Image
     edges: Image.Image
     deisolated: Image.Image
@@ -146,26 +118,21 @@ def process(target, targetfolder: pl.Path, outputfolder: pl.Path, author: str):
     start = time_ns()
     try: 
         capture = Image.open(str(targetfolder) + "/" + target)
-        (capture.transpose(Image.ROTATE_270)).save(str(outputfolder) + "/capture_" + target + ".jpg", "JPEG" )
+        width, height = capture.size
+        results["Width"] = width
+        results["Height"] = height
+        results["PixelCount"] = int(height * width)
+        (capture.transpose(Image.ROTATE_270)).save(str(outputfolder) + "/capture_" + target, "JPEG" )
         edges = ImprovedSecondDerivativeEdgeDetection(capture)
-        ((edges.transpose(Image.ROTATE_270)).convert("RGB")).save(str(outputfolder) + "/edges_" + target + ".jpg", "JPEG")
+        ((edges.transpose(Image.ROTATE_270)).convert("RGB")).save(str(outputfolder) + "/edges_" + target, "JPEG")
         deisolated, sample = ColorDeisolationRoutine(capture, edges)
-        (deisolated.transpose(Image.ROTATE_270)).save(str(outputfolder) + "/deisolated_" + target + ".jpg", "JPEG")
-        (sample.transpose(Image.ROTATE_270)).save(str(outputfolder) + "/sample_" + target + ".jpg", "JPEG")
-        LocalExecutor = fut.ThreadPoolExecutor(max_workers=2)
-        wstats = LocalExecutor.submit(MeasureWhiteDensity, deisolated)
-        estats = LocalExecutor.submit(MeasureSampleError, edges)
-        wm, wp = wstats.result()
-        em, ep = estats.result()
-        results["WhiteMass"] = wm
-        results["WhitePercent"] = wp
-        results["ErrorMass"] = em
-        results["ErrorPercent"] = ep
+        (deisolated.transpose(Image.ROTATE_270)).save(str(outputfolder) + "/deisolated_" + target, "JPEG")
+        (sample.transpose(Image.ROTATE_270)).save(str(outputfolder) + "/sample_" + target, "JPEG")
     except Exception as e:
-        LocalExecutor.shutdown(wait=False, cancel_futures=True)
-        raise e
-    LocalExecutor.shutdown(wait=True, cancel_futures=False)
-    results["TotalTime"] = time_ns() - start
+        results["Status"] = "Bad [%s]" % (str(e))
+    else:
+        results["Status"] = "Good"
+    results["TotalTime"] = (time_ns() - start) / 1000000
     return results
 
 def main(targetfolder: pl.Path, outputfolder: pl.Path, statistics_path: pl.Path, author: str):
@@ -173,26 +140,29 @@ def main(targetfolder: pl.Path, outputfolder: pl.Path, statistics_path: pl.Path,
     start = time_ns()
     targets = os.listdir(targetfolder)
     threads = {GlobalProcessPool.submit(process, target, targetfolder, outputfolder, author): target for target in targets}
-    pending = len(GlobalProcessPool._pending_work_items) - len(GlobalProcessPool._processes)
-    ongoing = len(GlobalProcessPool._processes)
+    pending_work = len(GlobalProcessPool._pending_work_items)
+    max_workers = GlobalProcessPool._max_workers
+    pending = pending_work - max_workers if (pending_work - max_workers) >= 0 else 0
+    ongoing = max_workers if pending_work >= max_workers else pending_work
     completed = len(targets) - (pending + ongoing)
-    while pending > 0 and ongoing > 0 and completed != len(targets):
+    while (pending > 0 and ongoing > 0) or completed != len(targets):
         print(" " * 90, end="\r")
         print("Pending {0} of {1} images | Ongoing: {2} | Completed: {3} | Time: {4:.2f}".format(pending, len(targets), ongoing, completed, (time_ns() - start) / 1000000000), end="\r")
-        pending = len(GlobalProcessPool._pending_work_items) - len(GlobalProcessPool._processes)
-        ongoing = len(GlobalProcessPool._processes)
+        pending_work = len(GlobalProcessPool._pending_work_items)
+        max_workers = GlobalProcessPool._max_workers
+        pending = pending_work - max_workers if (pending_work - max_workers) >= 0 else 0
+        ongoing = max_workers if pending_work >= max_workers else pending_work
         completed = len(targets) - (pending + ongoing)
         sleep(0.5)
     for future in fut.as_completed(threads):
         thr = threads[future]
-        result: dict
+        result = {}
         try:
             result = future.result()
+            GlobalDataFrame = GlobalDataFrame.append(result, ignore_index=True)
         except Exception as e:
             print("Process [%r] raised error: %s" % (thr, e))
-        finally:
-            GlobalDataFrame.append(result, ignore_index=True)
-    print(" " * 50, end="\r")
+    print(" " * 90, end="\r")
     print("Processed {0} images | Time: {1:.2f}".format(len(targets), (time_ns() - start) / 1000000000))
     GlobalDataFrame.to_csv(str(statistics_path), index=False)
     GlobalProcessPool.shutdown(wait=True, cancel_futures=False)
@@ -229,13 +199,11 @@ if __name__ == "__main__":
         GlobalDataFrame = pd.DataFrame(pd.read_csv(str(SP)))
     else:
         GlobalDataFrame = pd.DataFrame(columns=["Target", "Status",
-                                                "WhiteMass", "WhitePercent",
-                                                "ErrorMass", "ErrorPercent",
+                                                "Width", "Height", "PixelCount",
                                                 "TotalTime", "Author"])
-        GlobalDataFrame = GlobalDataFrame.astype({"Target": "object", "Status": "object",
-                                                  "WhiteMass": "float64", "WhitePercent": "float64",
-                                                  "ErrorMass": "float64", "ErrorPercent": "float64",
-                                                  "TotalTime": "int64", "Author": "object"})
+    GlobalDataFrame = GlobalDataFrame.astype({"Target": "object", "Status": "object",
+                                              "Width": "int64", "Height": "int64", "PixelCount": "int64",
+                                              "TotalTime": "float64", "Author": "object"})
     print(bar)
     print("Target folder: {}".format(str(TF.absolute())))
     print("Output folder: {}".format(str(OF.absolute())))
