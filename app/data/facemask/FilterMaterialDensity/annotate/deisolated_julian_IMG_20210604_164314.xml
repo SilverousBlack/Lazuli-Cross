@@ -1,0 +1,26 @@
+<annotation>
+  <folder>to_annotate</folder>
+  <filename>deisolated_julian_IMG_20210604_164314</filename>
+  <path>G:\Git\Lazuli-Cross\app\data\facemask\to_annotate\deisolated_julian_IMG_20210604_164314.jpg</path>
+  <source>
+    <database>Unknown</database>
+  </source>
+  <size>
+    <width>1740</width>
+    <height>3244</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Low GSM</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>275</xmin>
+      <ymin>361</ymin>
+      <xmax>1378</xmax>
+      <ymax>2922</ymax>
+    </bndbox>
+  </object>
+</annotation>

@@ -1,0 +1,26 @@
+<annotation>
+  <folder>to_annotate</folder>
+  <filename>deisolated_sean_IMG_20210604_104006</filename>
+  <path>G:\Git\Lazuli-Cross\app\data\facemask\to_annotate\deisolated_sean_IMG_20210604_104006.jpg</path>
+  <source>
+    <database>Unknown</database>
+  </source>
+  <size>
+    <width>768</width>
+    <height>584</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>High GSM</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>250</xmin>
+      <ymin>332</ymin>
+      <xmax>593</xmax>
+      <ymax>563</ymax>
+    </bndbox>
+  </object>
+</annotation>

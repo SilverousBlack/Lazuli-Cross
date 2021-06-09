@@ -1,0 +1,26 @@
+<annotation>
+  <folder>to_annotate</folder>
+  <filename>deisolated_yorika_IMG_20210604_131849</filename>
+  <path>G:\Git\Lazuli-Cross\app\data\facemask\to_annotate\deisolated_yorika_IMG_20210604_131849.jpg</path>
+  <source>
+    <database>Unknown</database>
+  </source>
+  <size>
+    <width>5472</width>
+    <height>7296</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Low GSM</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>486</xmin>
+      <ymin>78</ymin>
+      <xmax>4960</xmax>
+      <ymax>7296</ymax>
+    </bndbox>
+  </object>
+</annotation>

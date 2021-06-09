@@ -1,0 +1,62 @@
+<annotation>
+  <folder>to_annotate</folder>
+  <filename>deisolated_julian_IMG_20210604_163859</filename>
+  <path>G:\Git\Lazuli-Cross\app\data\facemask\to_annotate\deisolated_julian_IMG_20210604_163859.jpg</path>
+  <source>
+    <database>Unknown</database>
+  </source>
+  <size>
+    <width>2112</width>
+    <height>2392</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Low GSM</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>735</xmin>
+      <ymin>144</ymin>
+      <xmax>1357</xmax>
+      <ymax>1791</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Low GSM</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>303</xmin>
+      <ymin>552</ymin>
+      <xmax>696</xmax>
+      <ymax>1617</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Undefined Area</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>1642</xmin>
+      <ymin>576</ymin>
+      <xmax>1954</xmax>
+      <ymax>813</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Undefined Area</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>1574</xmin>
+      <ymin>995</ymin>
+      <xmax>1913</xmax>
+      <ymax>1276</ymax>
+    </bndbox>
+  </object>
+</annotation>

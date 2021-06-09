@@ -1,0 +1,38 @@
+<annotation>
+  <folder>to_annotate</folder>
+  <filename>deisolated_clyde_IMG_2678</filename>
+  <path>G:\Git\Lazuli-Cross\app\data\facemask\to_annotate\deisolated_clyde_IMG_2678.jpg</path>
+  <source>
+    <database>Unknown</database>
+  </source>
+  <size>
+    <width>2840</width>
+    <height>2320</height>
+    <depth>1</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Undefined Area</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>1</xmin>
+      <ymin>12</ymin>
+      <xmax>1215</xmax>
+      <ymax>2314</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>High GSM</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>1765</xmin>
+      <ymin>657</ymin>
+      <xmax>2500</xmax>
+      <ymax>1795</ymax>
+    </bndbox>
+  </object>
+</annotation>

@@ -8,6 +8,7 @@
 		}
 	],
 	"settings": {
-		"python.pythonPath": "C:\\Python\\Python39\\python.exe"
+		"python.pythonPath": "C:\\Python\\Python39\\python.exe",
+		"jupyter.jupyterServerType": "local"
 	}
 }

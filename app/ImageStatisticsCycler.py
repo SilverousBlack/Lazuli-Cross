@@ -145,7 +145,7 @@ def main(targetfolder: pl.Path, outputfolder: pl.Path, statistics_path: pl.Path,
     pending = pending_work - max_workers if (pending_work - max_workers) >= 0 else 0
     ongoing = max_workers if pending_work >= max_workers else pending_work
     completed = len(targets) - (pending + ongoing)
-    while (pending > 0 and ongoing > 0) or completed != len(targets):
+    while (pending > 0 and ongoing > 0) and completed != len(targets):
         print(" " * 90, end="\r")
         print("Pending {0} of {1} images | Ongoing: {2} | Completed: {3} | Time: {4:.2f}".format(pending, len(targets), ongoing, completed, (time_ns() - start) / 1000000000), end="\r")
         pending_work = len(GlobalProcessPool._pending_work_items)

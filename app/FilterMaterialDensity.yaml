@@ -1,0 +1,6 @@
+train: ../FilterMaterialDensity/images/train/
+val: ../FilterMaterialDensity/images/val/
+
+nc: 3
+
+names: ['Undefined Area', 'High GSM', 'Low GSM']
