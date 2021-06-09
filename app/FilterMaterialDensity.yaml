@@ -1,5 +1,5 @@
-train: ../FilterMaterialDensity/images/train/
-val: ../FilterMaterialDensity/images/val/
+train: Lazuli-Cross/app/data/facemask/FilterMaterialDensity/images/train/
+val: Lazuli-Cross/app/data/facemask/FilterMaterialDensity/images/val/
 
 nc: 3
 
