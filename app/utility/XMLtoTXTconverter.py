@@ -2,8 +2,8 @@
 import os
 import xml.etree.ElementTree as ET
 
-dirpath = r'app/data/facemask/annotate'  # The directory where the xml file was originally stored
-newdir = r'app/data/facemask/temp'  # The txt directory formed after modifying the label
+dirpath = r'G:/Git/Lazuli-Cross-Object-Detection-Dataset/labels/val'  # The directory where the xml file was originally stored
+newdir = r'G:/Git/Lazuli-Cross-Object-Detection-Dataset/labels/val'  # The txt directory formed after modifying the label
 
 if not os.path.exists(newdir):
     os.makedirs(newdir)

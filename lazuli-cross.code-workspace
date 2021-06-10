@@ -4,6 +4,12 @@
 			"path": "."
 		},
 		{
+			"path": "..\\Lazuli-Cross-Object-Detection-Dataset"
+		},
+		{
+			"path": "..\\Lazuli-Cross-Filter-Material-Density-Dataset"
+		},
+		{
 			"path": "..\\..\\Silverous Black\\CPE22S2-B20\\CPE 205\\Lazuli Cross"
 		}
 	],
