@@ -81,7 +81,9 @@ def capture(path):
         pass
     elif resmode == "half":
         height, width = local.size
-        local
+        local = local.resize((int(height // 2), int(width // 2)), Image.ANTIALIAS)
+    elif resmode == "max-width":
+        
 
 def detect():
     pass
