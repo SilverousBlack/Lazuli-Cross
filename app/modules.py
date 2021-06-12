@@ -83,7 +83,22 @@ def capture(path):
         height, width = local.size
         local = local.resize((int(height // 2), int(width // 2)), Image.ANTIALIAS)
     elif resmode == "max-width":
-        
+        height, width = local.size
+        ratio = height / width
+        newh = int(ressz * ratio)
+        local = local.resize((newh, ressz), Image.ANTIALIAS)
+    elif resmode == "max-height":
+        height, width = local.size
+        ratio = width / height
+        neww = int(ressz * ratio)
+        local = local.resize((ressz, neww), Image.ANTIALIAS)
+    elif resmode == "auto":
+        height, width = local.size
+        ratio = min(height, width) / max(height, width)
+        newh = ressz if height >= width else ressz * ratio
+        neww = ressz if width >= height else ressz * ratio
+    extension = pl.Path(path)
+    local.save("{0}/capture.jpg", )
 
 def detect():
     pass
