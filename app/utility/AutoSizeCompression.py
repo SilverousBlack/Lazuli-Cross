@@ -4,8 +4,8 @@ from PIL import Image
 import random
 from shutil import copyfile
 
-targetdir = "app/data/facemask/load"
-outputdir = "app/data/facemask/temp"
+targetdir = "app/data/facemask/load" # directory containing the images
+outputdir = "app/data/facemask/temp" # output directory (must not be same with target) 
 
 targets = os.listdir(targetdir)
 for i in targets:
@@ -15,7 +15,7 @@ for i in targets:
 if not os.path.exists(outputdir):
     os.makedirs(outputdir)
     
-compressiontarget = 1000000 # image size in square pixels
+compressiontarget = 1024 # maximum length of either height or width of the image
 totaltargetcount = len(targets)
 
 def getcountstring(count: int):
@@ -34,10 +34,9 @@ while len(targets) > 0:
     i = random.randint(0, len(targets) - 1)
     capture = Image.open(targetdir + "/" + targets[i])
     height, width = capture.size
-    maxlen = int(sqrt(compressiontarget) / (min(height, width) / max(height, width)))
-    minlen = int(sqrt(compressiontarget) / (max(height, width) / max(height, width)))
-    newh = maxlen if height > width else minlen
-    neww = maxlen if width > height else minlen
+    ratio = min(height, width) / max(height, width)
+    newh = compressiontarget if height > width else compressiontarget * ratio
+    neww = compressiontarget if width > height else compressiontarget * ratio
     var = getcountstring(count)
     capture = capture.resize((newh, neww), Image.ANTIALIAS)
     capture.save("{0}/lazulicross_{1}.jpg".format(outputdir, var), "JPEG")

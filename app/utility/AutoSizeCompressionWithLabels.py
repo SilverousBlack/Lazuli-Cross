@@ -4,10 +4,10 @@ from PIL import Image
 import random
 from shutil import copyfile
 
-targetdir = "app/data/facemask/FilterMaterialDensity/images"
-labelsdir = "app/data/facemask/FilterMaterialDensity/labels"
-outputdir = "app/data/facemask/FilterMaterialDensity/images/train"
-labelodir = "app/data/facemask/FilterMaterialDensity/labels/train"
+targetdir = "app/data/facemask/FilterMaterialDensity/images" # directory containing the images
+labelsdir = "app/data/facemask/FilterMaterialDensity/labels" # directory containing the labels
+outputdir = "app/data/facemask/FilterMaterialDensity/images/train" # image output directory (must not be same with target)
+labelodir = "app/data/facemask/FilterMaterialDensity/labels/train" # label output directory (must not be same with target)
 
 targets = os.listdir(targetdir)
 for i in targets:
@@ -19,7 +19,7 @@ if not os.path.exists(outputdir):
 if not os.path.exists(labelodir):
     os.makedirs(labelodir)
 
-compressiontarget = 1000000 # image size in square pixels
+compressiontarget = 1024 # maximum length of either height or width of the image
 totaltargetcount = len(targets)
 
 def getcountstring(count: int):
@@ -38,10 +38,9 @@ while len(targets) > 0:
     i = random.randint(0, len(targets) - 1)
     capture = Image.open(targetdir + "/" + targets[i])
     height, width = capture.size
-    maxlen = int(sqrt(compressiontarget) / (min(height, width) / max(height, width)))
-    minlen = int(sqrt(compressiontarget) / (max(height, width) / max(height, width)))
-    newh = maxlen if height > width else minlen
-    neww = maxlen if width > height else minlen
+    ratio = min(height, width) / max(height, width)
+    newh = compressiontarget if height > width else compressiontarget * ratio
+    neww = compressiontarget if width > height else compressiontarget * ratio
     var = getcountstring(count)
     capture = capture.resize((newh, neww), Image.ANTIALIAS)
     capture.save("{0}/lazulicross_{1}.jpg".format(outputdir, var), "JPEG")
