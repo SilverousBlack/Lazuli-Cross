@@ -3,7 +3,7 @@ from io import open
 import pathlib as pl
 from PIL import Image
 import sys
-import utility
+from utility import image_process 
 
 conf_search = ["meta/config.conf", 
                "app/meta/config.conf", 
@@ -101,6 +101,9 @@ def capture(path):
     local.save("{0}/capture.jpg", )
 
 def detect():
+    pass
+
+def test():
     pass
 
 print()
