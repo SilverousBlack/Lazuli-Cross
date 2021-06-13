@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import filedialog
 import os
 from PIL import Image, ImageTk
+from modules import capture, detect, test
 
 def image():
     fln = filedialog.askopenfilename(initialdir = os.getcwd(), title="Select Image file", filetypes=(("JPG File","*.jpg"),("PNG file", "*.png"),("All Files","*.*")))
@@ -10,10 +11,16 @@ def image():
     img = ImageTk.PhotoImage(img)
     lbl.configure(image = img)
     lbl.image = img
+    capture(fln)
+
+def function():
+    detect()
+    test()
 
 root = Tk()
 root.title("Lazuli Cross")
 root.geometry("300x400")
+root.iconbitmap("D:/Users/Admin/Documents/Documents/Lazuli Cross/Lazuli/logo.ico")
 
 f1 = Frame(root, height=400, width=300)
 f1.config(background='#32454a')
@@ -26,7 +33,7 @@ f3 = Frame(f1)
 f3.config(background = '#32454a')
 b1 = Button(f3, text="Insert Image", bg = '#5a7982', fg = 'white', command = image)
 b1.pack(side = LEFT)
-b2 = Button(f3, text = "Test Image", bg = '#5a7982', fg = 'white')
+b2 = Button(f3, text = "Test Image", bg = '#5a7982', fg = 'white', command = function)
 b2.pack(side = RIGHT)
 
 lbl.pack(side = TOP)
