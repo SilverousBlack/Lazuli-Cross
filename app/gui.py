@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import filedialog
 import os
 from PIL import Image, ImageTk
+import pathlib as pl
 from modules import capture, detect, test
 
 def image():
@@ -20,7 +21,7 @@ def function():
 root = Tk()
 root.title("Lazuli Cross")
 root.geometry("300x400")
-root.iconbitmap("D:/Users/Admin/Documents/GitHub/Lazuli-Cross/app/logo.ico")
+root.iconbitmap(str(pl.Path(__file__).parent) + "/logo.ico")
 
 f1 = Frame(root, height=400, width=300)
 f1.config(background='#32454a')
@@ -40,4 +41,3 @@ lbl.pack(side = TOP)
 f1.pack(fill='both', expand=True)
 f2.pack(expand=True)
 f3.pack(expand=True, side = BOTTOM)
-root.mainloop()

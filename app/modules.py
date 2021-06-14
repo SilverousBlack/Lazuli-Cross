@@ -103,6 +103,8 @@ if not pl.Path(tempdir).exists():
     pl.Path(tempdir).mkdir()
 if not pl.Path(tempdir + "/detected").exists():
     pl.Path(tempdir + "/detected").mkdir()
+if not pl.Path(tempdir + "/testing").exists():
+    pl.Path(tempdir + "/testing").mkdir()
 print("Checking directories... OK", end="\r")
 print(" " * 50, end="\r")
 
@@ -110,7 +112,10 @@ temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected 
 del detect_commands
 detect_commands = temp
 del temp
-temp = test_commands + " --exist-ok --project" + tempdir + " --name detected --view-img"
+temp = test_commands + " --exist-ok --project " + tempdir + " --name testing --view-img"
+del test_commands
+test_commands = temp
+del temp
 
 # Argument Parser copy from the detect.py located at the YOLO directory
 # modify accordingly if other YOLO detection algorithm implementation is used
@@ -144,7 +149,15 @@ def  flush():
     if pl.Path(tempdir + "/target.jpg").exists():
         os.remove(tempdir + "/target.jpg")
     loc = tempdir + "/detected"
-    floc = os.listdir(tempdir + "/detected")
+    floc = os.listdir(loc)
+    for i in floc:
+        if pl.Path(loc + "/" + i).is_file():
+            os.remove(loc + "/" + i)
+        elif pl.Path(loc + "/" + i).is_dir():
+            rmtree(loc + "/" + i)
+    del loc
+    loc = tempdir + "/testing"
+    floc = os.listdir(loc)
     for i in floc:
         if pl.Path(loc + "/" + i).is_file():
             os.remove(loc + "/" + i)
@@ -192,28 +205,40 @@ def capture(path):
     
 def detect():
     global detect_commands
-    dopt = parser.parse_known_args(detect_commands.split(" "))
+    dopt = (parser.parse_known_args(detect_commands.split(" ")))[0]
+    print(dopt)
     yolodetect.detect(**vars(dopt))
 
+def _process(imgpath, loc):
+    global tempdir
+    capture = Image.open(loc + "/" + imgpath)
+    edges = imgproc.ImprovedSecondDerivativeEdgeDetection(capture)
+    deisolated = (imgproc.ColorDeisolationRoutine(capture, edges))[0]
+    deisolated.save(tempdir + "/testing/deisolated_" + i, "JPEG")
+
 def test():
-    topt = parser.parse_known_args((test_commands + " --source" + tempdir + "/detected/test").split(" "))
+    topt = (parser.parse_known_args((test_commands + " --source " + tempdir + "/testing").split(" ")))[0]
     loc = tempdir + "/detected/crops/Facemask"
     if not pl.Path(loc).exists():
         print("Found no detected supported images [class=\'Facemask\'] to test.")
     else:
-        pl.Path(tempdir + "/detected/test").mkdir()
+        if not pl.Path(tempdir + "/detected/test").exists():
+            pl.Path(tempdir + "/detected/test").mkdir()
         floc = os.listdir(loc)
         print("Found {} detected supported images".format(len(floc)))
         print("Processing...", end="\r")
+        
         for i in floc:
+            print(" " * 50, end="\r")
             print("Processing {}... ".format(i), end="\r")
             capture = Image.open(loc + "/" + i)
-            edges = imgproc.ImprovedSecondOrderEdgeDetection(capture)
-            deisolated, sample = imgproc.ColorDeisolationRoutine(capture, edges)
-            deisolated.save(tempdir + "/detected/test/deisolated_" + i, "JPEG")
-            sample.save(tempdir + "/detected/test/sample_" + i, "JPEG")
+            edges = imgproc.ImprovedSecondDerivativeEdgeDetection(capture)
+            deisolated= (imgproc.ColorDeisolationRoutine(capture, edges))[0]
+            deisolated.save(tempdir + "/testing/deisolated_" + i, "JPEG")
             print("Processing {}... OK".format(i), end="\r")
+        print(" " * 50, end="\r")
         print("Finished Processing Images")
+        print(topt)
         yolodetect.detect(**vars(topt))
 
 print(" " * 50, end="\r")
