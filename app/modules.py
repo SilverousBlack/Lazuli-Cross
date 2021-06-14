@@ -3,6 +3,7 @@ from io import open
 import os
 import pathlib as pl
 from PIL import Image
+from shutil import rmtree
 import sys
 from importlib import import_module
 
@@ -111,6 +112,9 @@ detect_commands = temp
 del temp
 temp = test_commands + " --exist-ok --project" + tempdir + " --name detected"
 
+# Argument Parser copy from the detect.py located at the YOLO directory
+# modify accordingly if other YOLO detection algorithm implementation is used
+# presently resonates to @ultralytics YOLO implementation 
 parser = argparse.ArgumentParser()
 parser.add_argument('--weights', nargs='+', type=str, default='yolov5s.pt', help='model.pt path(s)')
 parser.add_argument('--source', type=str, default='data/images', help='file/dir/URL/glob, 0 for webcam')
@@ -136,8 +140,25 @@ parser.add_argument('--hide-labels', default=False, action='store_true', help='h
 parser.add_argument('--hide-conf', default=False, action='store_true', help='hide confidences')
 parser.add_argument('--half', action='store_true', help='use FP16 half-precision inference')
 
+def  flush():
+    if pl.Path(tempdir + "/target.jpg").exists():
+        os.remove(tempdir + "/target.jpg")
+    detectdir = tempdir + "/detected"
+    floc = os.listdir(tempdir + "/detected")
+    for i in floc:
+        if pl.Path(detectdir + "/" + i).is_file():
+            os.remove(tempdir + "/" + i)
+        elif pl.Path(detectdir + "/" + i).is_dir():
+            rmtree(detectdir + "/" + i)
+        
+print("Cleaning temporary directory...", end="\r")
+flush()
+print("Cleaning temporary directory... OK", end="\r")
+print(" " * 50, end="\r")
+
 def capture(path):
     global resmode, ressz, detect_commands
+    flush()
     name, extension = os.path.splitext(path)
     del name
     if not extension in [".png", ".jpg", ".jpeg"]:
@@ -177,7 +198,7 @@ del test_commands
 print("Processing YOLO options... OK", end="\r")
     
 def detect():
-    yolodetect.detect(**vars(opt))
+    yolodetect.detect(**vars(dopt))
     pass
 
 def test():

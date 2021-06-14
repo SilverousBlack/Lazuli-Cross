@@ -136,3 +136,4 @@ dmypy.json
 *.cvsm
 *.csvv
 app/data/facemask/tests/results/*
+config.conf
