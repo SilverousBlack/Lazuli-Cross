@@ -20,7 +20,7 @@ def function():
 root = Tk()
 root.title("Lazuli Cross")
 root.geometry("300x400")
-root.iconbitmap("D:/Users/Admin/Documents/Documents/Lazuli Cross/Lazuli/logo.ico")
+root.iconbitmap("D:/Users/Admin/Documents/GitHub/Lazuli-Cross/app/logo.ico")
 
 f1 = Frame(root, height=400, width=300)
 f1.config(background='#32454a')
