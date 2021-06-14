@@ -106,11 +106,11 @@ if not pl.Path(tempdir + "/detected").exists():
 print("Checking directories... OK", end="\r")
 print(" " * 50, end="\r")
 
-temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected"
+temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected --view-img"
 del detect_commands
 detect_commands = temp
 del temp
-temp = test_commands + " --exist-ok --project" + tempdir + " --name detected" + " --view-img"
+temp = test_commands + " --exist-ok --project" + tempdir + " --name detected --view-img"
 
 # Argument Parser copy from the detect.py located at the YOLO directory
 # modify accordingly if other YOLO detection algorithm implementation is used
