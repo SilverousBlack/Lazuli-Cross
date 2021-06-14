@@ -110,7 +110,7 @@ temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected"
 del detect_commands
 detect_commands = temp
 del temp
-temp = test_commands + " --exist-ok --project" + tempdir + " --name detected"
+temp = test_commands + " --exist-ok --project" + tempdir + " --name detected" + " --view-img"
 
 # Argument Parser copy from the detect.py located at the YOLO directory
 # modify accordingly if other YOLO detection algorithm implementation is used
@@ -143,13 +143,13 @@ parser.add_argument('--half', action='store_true', help='use FP16 half-precision
 def  flush():
     if pl.Path(tempdir + "/target.jpg").exists():
         os.remove(tempdir + "/target.jpg")
-    detectdir = tempdir + "/detected"
+    loc = tempdir + "/detected"
     floc = os.listdir(tempdir + "/detected")
     for i in floc:
-        if pl.Path(detectdir + "/" + i).is_file():
-            os.remove(tempdir + "/" + i)
-        elif pl.Path(detectdir + "/" + i).is_dir():
-            rmtree(detectdir + "/" + i)
+        if pl.Path(loc + "/" + i).is_file():
+            os.remove(loc + "/" + i)
+        elif pl.Path(loc + "/" + i).is_dir():
+            rmtree(loc + "/" + i)
         
 print("Cleaning temporary directory...", end="\r")
 flush()
@@ -189,20 +189,32 @@ def capture(path):
     temp = detect_commands
     del detect_commands
     detect_commands = temp + " --source " + tempdir + "/target.jpg"
-
-print("Processing YOLO options...", end="\r")  
-dopt = parser.parse_known_args(detect_commands.split(" "))
-del detect_commands
-topt = parser.parse_known_args(test_commands.split(" "))
-del test_commands
-print("Processing YOLO options... OK", end="\r")
     
 def detect():
+    global detect_commands
+    dopt = parser.parse_known_args(detect_commands.split(" "))
     yolodetect.detect(**vars(dopt))
-    pass
 
 def test():
-    pass
+    topt = parser.parse_known_args((test_commands + " --source" + tempdir + "/detected/test").split(" "))
+    loc = tempdir + "/detected/crops/Facemask"
+    if not pl.Path(loc).exists():
+        print("Found no detected supported images [class=\'Facemask\'] to test.")
+    else:
+        pl.Path(tempdir + "/detected/test").mkdir()
+        floc = os.listdir(loc)
+        print("Found {} detected supported images".format(len(floc)))
+        print("Processing...", end="\r")
+        for i in floc:
+            print("Processing {}... ".format(i), end="\r")
+            capture = Image.open(loc + "/" + i)
+            edges = imgproc.ImprovedSecondOrderEdgeDetection(capture)
+            deisolated, sample = imgproc.ColorDeisolationRoutine(capture, edges)
+            deisolated.save(tempdir + "/detected/test/deisolated_" + i, "JPEG")
+            sample.save(tempdir + "/detected/test/sample_" + i, "JPEG")
+            print("Processing {}... OK".format(i), end="\r")
+        print("Finished Processing Images")
+        yolodetect.detect(**vars(topt))
 
 print(" " * 50, end="\r")
 print("Configuration resolved [{}]".format(str(pl.Path(config_path).relative_to(os.getcwd()))))
