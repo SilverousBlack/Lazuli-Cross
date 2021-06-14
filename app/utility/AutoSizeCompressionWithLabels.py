@@ -4,10 +4,10 @@ from PIL import Image
 import random
 from shutil import copyfile
 
-targetdir = "app/data/facemask/FilterMaterialDensity/images" # directory containing the images
-labelsdir = "app/data/facemask/FilterMaterialDensity/labels" # directory containing the labels
-outputdir = "app/data/facemask/FilterMaterialDensity/images/train" # image output directory (must not be same with target)
-labelodir = "app/data/facemask/FilterMaterialDensity/labels/train" # label output directory (must not be same with target)
+targetdir = "D:/GitHub/temp_anno" # directory containing the images
+labelsdir = "D:/GitHub/temp_anno" # directory containing the labels
+outputdir = "D:\GitHub\Lazuli-Cross-Object-Detection-Dataset\images" # image output directory (must not be same with target)
+labelodir = "D:\GitHub\Lazuli-Cross-Object-Detection-Dataset\labels" # label output directory (must not be same with target)
 
 targets = os.listdir(targetdir)
 for i in targets:
@@ -39,8 +39,8 @@ while len(targets) > 0:
     capture = Image.open(targetdir + "/" + targets[i])
     height, width = capture.size
     ratio = min(height, width) / max(height, width)
-    newh = compressiontarget if height > width else compressiontarget * ratio
-    neww = compressiontarget if width > height else compressiontarget * ratio
+    newh = compressiontarget if height > width else int(compressiontarget * ratio)
+    neww = compressiontarget if width > height else int(compressiontarget * ratio)
     var = getcountstring(count)
     capture = capture.resize((newh, neww), Image.ANTIALIAS)
     capture.save("{0}/lazulicross_{1}.jpg".format(outputdir, var), "JPEG")
