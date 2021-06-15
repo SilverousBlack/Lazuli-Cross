@@ -135,7 +135,10 @@ dmypy.json
 # Custom ignores
 *.cvsm
 *.csvv
-app/data/facemask/tests/results/*
+app/temp/*
 app/meta/config.conf
 app/meta/default.conf
 *.conf
+app/meta/config.conf
+*.conf
+
