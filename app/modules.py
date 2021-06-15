@@ -195,8 +195,9 @@ def capture(path):
     elif resmode == "auto":
         height, width = local.size
         ratio = min(height, width) / max(height, width)
-        newh = ressz if height >= width else ressz * ratio
-        neww = ressz if width >= height else ressz * ratio
+        newh = ressz if height >= width else int(ressz * ratio)
+        neww = ressz if width >= height else int(ressz * ratio)
+        local = local.resize((newh, neww), Image.ANTIALIAS)
     local.convert("RGB")
     local.save(tempdir + "/target.jpg", "JPEG")
     temp = detect_commands
