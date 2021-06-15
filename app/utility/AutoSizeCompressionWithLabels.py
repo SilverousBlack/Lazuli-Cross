@@ -4,8 +4,8 @@ from PIL import Image
 import random
 from shutil import copyfile
 
-targetdir = "D:/GitHub/temp_anno" # directory containing the images
-labelsdir = "D:/GitHub/temp_anno" # directory containing the labels
+targetdir = "D:/GitHub/temp_anno/temp_images" # directory containing the images
+labelsdir = "D:/GitHub/temp_anno/temp_images" # directory containing the labels
 outputdir = "D:\GitHub\Lazuli-Cross-Object-Detection-Dataset\images" # image output directory (must not be same with target)
 labelodir = "D:\GitHub\Lazuli-Cross-Object-Detection-Dataset\labels" # label output directory (must not be same with target)
 
