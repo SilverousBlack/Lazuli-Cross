@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import scrolledtext
+from tkinter import filedialog
 import os
 from PIL import Image, ImageTk
 import pathlib as pl
@@ -31,7 +31,7 @@ f1.config(background='#32454a')
 
 
 f2 = Frame(f1)
-f2.config(background = '#32454a')
+f2.config()
 
 
 lbl = Label(f2, padx = 100, pady = 100, bd = 1)
@@ -41,16 +41,15 @@ f3.config(background = '#32454a')
 
 
 b1 = Button(f3, text="Insert Image", bg = '#5a7982', fg = 'white', command = image)
-b1.grid(row=0, column=0, padx=(10), pady=10)
+b1.grid(row=0, column=0, padx= 10, pady=10)
 
 b2 = Button(f3, text = "Test Image", bg = '#5a7982', fg = 'white', command = function)
-b2.grid(row=0, column=1, padx=(10), pady=10)
+b2.grid(row=0, column=1, padx=10, pady=10)
 
 
-
-lbl.pack(side = TOP)
-f1.pack(fill='both', expand=True)
+lbl.pack()
+f1.pack(fill='both',expand=True)
 
 f2.pack(expand=True)
 
-f3.pack(expand=True, side = BOTTOM)
+f3.pack(expand=True)
