@@ -7,3 +7,4 @@ while True and root.winfo_ismapped():
     except Exception as e:
         print("A runtime error occured: {}".format(str(e)))
         root.destroy()
+exit()
