@@ -3,8 +3,8 @@ from PIL import Image
 import pathlib as pl
 from random import randint
 
-targetdir = r"G:/Git/Lazuli-Cross-Object-Detection-Dataset/images"
-outputdir = r"G:/Git/Lazuli-Cross-Object-Detection-Dataset/temp"
+targetdir = r"G:/Git/Lazuli-Cross-Filter-Material-Density-Dataset/images"
+outputdir = r"G:/Git/Lazuli-Cross-Filter-Material-Density-Dataset/temp"
 
 if not pl.Path(targetdir).exists():
     raise Exception("Target directory does not exists.")
