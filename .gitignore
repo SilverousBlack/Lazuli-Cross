@@ -142,3 +142,4 @@ app/meta/default.conf
 app/meta/config.conf
 *.conf
 
+app/lazulicrossapp.pyproject.user

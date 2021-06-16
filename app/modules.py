@@ -63,14 +63,14 @@ for opt in options:
         temp = detect_commands + "--weights"
         for i in (opt.split(" "))[1:]:
             del detect_commands
-            detect_commands = temp + " " + dmodeldir + "/" + i
+            detect_commands = temp + " " + dmodeldir + "/" + i if not i in [" ", "", "\n"] else temp
             del temp
             temp = detect_commands
     elif (opt.split(" "))[0] == "testmodeltargets:":
         temp = test_commands + "--weights"
         for i in (opt.split(" "))[1:]:
             del test_commands
-            test_commands = temp + " " + tmodeldir + "/" + i
+            test_commands = temp + " " + tmodeldir + "/" + i if not i in [" ", "", "\n"] else temp
             del temp
             temp = test_commands
     elif (opt.split(" "))[0] == "detectoverride:":
