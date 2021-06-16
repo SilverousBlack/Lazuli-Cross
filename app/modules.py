@@ -7,7 +7,7 @@ from shutil import rmtree
 import sys
 from importlib import import_module
 
-print("Resolving configuration.", end="\r")
+print("Resolving configuration.")
 
 imgproc = import_module("utility.image_process")
 yolodetect: None
@@ -26,7 +26,7 @@ for conf in conf_search:
 
 del conf_search
 
-print(" " * 50, end="\r")
+
 print("Reading configuration file...", end="\r")
 config = open(config_path, "r")
 options = (config.read()).split("\n")
@@ -87,8 +87,8 @@ for opt in options:
         raise RuntimeError()
 config.close()
 del config
-print("Reading configuration file... OK", end="\r")
-print(" " * 50, end="\r")
+print("Reading configuration file... OK")
+
 
 print("Checking directories...", end="\r")
 if not pl.Path(yolodir).exists():
@@ -105,8 +105,8 @@ if not pl.Path(tempdir + "/detected").exists():
     pl.Path(tempdir + "/detected").mkdir()
 if not pl.Path(tempdir + "/testing").exists():
     pl.Path(tempdir + "/testing").mkdir()
-print("Checking directories... OK", end="\r")
-print(" " * 50, end="\r")
+print("Checking directories... OK")
+
 
 temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected --view-img"
 del detect_commands
@@ -166,8 +166,13 @@ def  flush():
         
 print("Cleaning temporary directory...", end="\r")
 flush()
-print("Cleaning temporary directory... OK", end="\r")
-print(" " * 50, end="\r")
+print("Cleaning temporary directory... OK")
+print("Configuration resolved [{}]".format(str(pl.Path(config_path))))
+print("Temporary directory: {}".format(str(pl.Path(tempdir))))
+print("Detection models directory: {}".format(str(pl.Path(dmodeldir))))
+print("Testing models directory: {}".format(str(pl.Path(tmodeldir))))
+print("Full detection commands (excludes source): " + detect_commands)
+print("Full testing commands (excludes source): " + test_commands)
 
 def capture(path):
     global resmode, ressz, detect_commands
@@ -203,7 +208,7 @@ def capture(path):
     temp = detect_commands
     del detect_commands
     detect_commands = temp + " --source " + tempdir + "/target.jpg"
-    
+
 def detect():
     global detect_commands
     dopt = (parser.parse_known_args(detect_commands.split(" ")))[0]
@@ -227,20 +232,15 @@ def test():
             pl.Path(tempdir + "/detected/test").mkdir()
         floc = os.listdir(loc)
         print("Found {} detected supported images".format(len(floc)))
-        print("Processing...", end="\r")
+        print("Processing...")
         
         for i in floc:
-            print(" " * 50, end="\r")
             print("Processing {}... ".format(i), end="\r")
             capture = Image.open(loc + "/" + i)
             edges = imgproc.ImprovedSecondDerivativeEdgeDetection(capture)
             deisolated= (imgproc.ColorDeisolationRoutine(capture, edges))[0]
             deisolated.save(tempdir + "/testing/deisolated_" + i, "JPEG")
-            print("Processing {}... OK".format(i), end="\r")
-        print(" " * 50, end="\r")
+            print("Processing {}... OK".format(i))
         print("Finished Processing Images")
         print(topt)
         yolodetect.detect(**vars(topt))
-
-print(" " * 50, end="\r")
-print("Configuration resolved [{}]".format(str(pl.Path(config_path).relative_to(os.getcwd()))))
