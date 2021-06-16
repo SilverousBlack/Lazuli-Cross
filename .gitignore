@@ -137,9 +137,6 @@ dmypy.json
 *.csvv
 app/temp/*
 app/meta/config.conf
-app/meta/default.conf
-*.conf
 app/meta/config.conf
-*.conf
 
 app/lazulicrossapp.pyproject.user

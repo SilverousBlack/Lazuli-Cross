@@ -1,11 +1,13 @@
 import argparse
+import concurrent.futures as fut
+from importlib import import_module
 from io import open
 import os
 import pathlib as pl
 from PIL import Image
 from shutil import rmtree
 import sys
-from importlib import import_module
+from time import time_ns, sleep
 
 print("Resolving configuration.")
 
@@ -108,11 +110,11 @@ if not pl.Path(tempdir + "/testing").exists():
 print("Checking directories... OK")
 
 
-temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected --view-img"
+temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected --view-img --augment --save-crop --nosave"
 del detect_commands
 detect_commands = temp
 del temp
-temp = test_commands + " --exist-ok --project " + tempdir + " --name testing --view-img"
+temp = test_commands + " --exist-ok --project " + tempdir + " --name testing --view-img --save-crop --nosave"
 del test_commands
 test_commands = temp
 del temp
@@ -211,6 +213,10 @@ def capture(path):
 
 def detect():
     global detect_commands
+    temp = detect_commands
+    del detect_commands
+    detect_commands = temp + " --source " + tempdir + "/target.jpg"
+    del temp
     dopt = (parser.parse_known_args(detect_commands.split(" ")))[0]
     print(dopt)
     yolodetect.detect(**vars(dopt))
@@ -220,7 +226,9 @@ def _process(imgpath, loc):
     capture = Image.open(loc + "/" + imgpath)
     edges = imgproc.ImprovedSecondDerivativeEdgeDetection(capture)
     deisolated = (imgproc.ColorDeisolationRoutine(capture, edges))[0]
-    deisolated.save(tempdir + "/testing/deisolated_" + i, "JPEG")
+    fpath = tempdir + "/testing/deisolated_" + imgpath
+    deisolated.save(fpath, "JPEG")
+    return "Processed " + imgpath + ": OK"
 
 def test():
     topt = (parser.parse_known_args((test_commands + " --source " + tempdir + "/testing").split(" ")))[0]
@@ -233,14 +241,35 @@ def test():
         floc = os.listdir(loc)
         print("Found {} detected supported images".format(len(floc)))
         print("Processing...")
-        
-        for i in floc:
-            print("Processing {}... ".format(i), end="\r")
-            capture = Image.open(loc + "/" + i)
-            edges = imgproc.ImprovedSecondDerivativeEdgeDetection(capture)
-            deisolated= (imgproc.ColorDeisolationRoutine(capture, edges))[0]
-            deisolated.save(tempdir + "/testing/deisolated_" + i, "JPEG")
-            print("Processing {}... OK".format(i))
+        localthreadpool = fut.ThreadPoolExecutor()
+        start = time_ns()
+        threads = {localthreadpool.submit(_process, i, loc): i for i in floc}
+        pending_work = localthreadpool._work_queue.qsize()
+        pending = pending_work - localthreadpool._work_queue.qsize() if (pending_work - localthreadpool._work_queue.qsize()) >= 0 else 0
+        ongoing = localthreadpool._work_queue.qsize()
+        completed = len(floc) - (pending + ongoing)
+        while ((pending > 0 or ongoing > 0) and completed != len(floc)):
+            print(" " * 90, end="\r")
+            print("Pending {0} of {1} images | Ongoing: {2} | Completed: {3} | Time: {4:.2f}".format(pending, len(floc), ongoing, completed, (time_ns() - start) / 1000000000), end="\r")
+            pending_work = localthreadpool._work_queue.qsize()
+            pending = pending_work - localthreadpool._work_queue.qsize() if (pending_work - localthreadpool._work_queue.qsize()) >= 0 else 0
+            ongoing = localthreadpool._work_queue.qsize()
+            completed = len(floc) - (pending + ongoing)
+            sleep(0.5)
+        print(" " * 90, end="\r")
+        print("Pending {0} of {1} images | Ongoing: {2} | Completed: {3} | Time: {4:.2f}".format(pending, len(floc), ongoing, completed, (time_ns() - start) / 1000000000), end="\r")
+        localthreadpool.shutdown(wait=True, cancel_futures=False)
+        print(" " * 90, end="\r")
+        for future in fut.as_completed(threads):
+            thr = threads[future]
+            result = {}
+            try:
+                result = future.result()
+                print(result)
+            except Exception as e:
+                print("Process [%r] raised error: %s" % (thr, e))
+        print("Processed {0} images | Time: {1:.2f}".format(len(floc), (time_ns() - start) / 1000000000))
         print("Finished Processing Images")
         print(topt)
         yolodetect.detect(**vars(topt))
+        flush()
