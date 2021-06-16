@@ -108,11 +108,11 @@ if not pl.Path(tempdir + "/testing").exists():
 print("Checking directories... OK")
 
 
-temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected --view-img"
+temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected --view-img --augment"
 del detect_commands
 detect_commands = temp
 del temp
-temp = test_commands + " --exist-ok --project " + tempdir + " --name testing --view-img"
+temp = test_commands + " --exist-ok --project " + tempdir + " --name testing --view-img --augment"
 del test_commands
 test_commands = temp
 del temp
@@ -244,3 +244,4 @@ def test():
         print("Finished Processing Images")
         print(topt)
         yolodetect.detect(**vars(topt))
+        flush()
