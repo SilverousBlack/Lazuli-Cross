@@ -2,8 +2,8 @@
 import os
 import xml.etree.ElementTree as ET
 
-dirpath = r'G:/Git/Lazuli-Cross-Object-Detection-Dataset/labels/val'  # The directory where the xml file was originally stored
-newdir = r'G:/Git/Lazuli-Cross-Object-Detection-Dataset/labels/val'  # The txt directory formed after modifying the label
+dirpath = r'G:/Git/Lazuli-Cross-Filter-Material-Density-Dataset/labels/train1'  # The directory where the xml file was originally stored
+newdir = r'G:/Git/Lazuli-Cross-Filter-Material-Density-Dataset/labels/train1'  # The txt directory formed after modifying the label
 
 if not os.path.exists(newdir):
     os.makedirs(newdir)
