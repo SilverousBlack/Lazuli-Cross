@@ -181,7 +181,7 @@ def capture(path):
     flush()
     name, extension = os.path.splitext(path)
     del name
-    if not extension in [".png", ".jpg", ".jpeg"]:
+    if not extension.lower() in [".png", ".jpg", ".jpeg"]:
         raise Exception("Only PNG and JPEG file types are allowed.")
     local = Image.open(path)
     if resmode == "full":
