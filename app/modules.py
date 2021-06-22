@@ -110,11 +110,11 @@ if not pl.Path(tempdir + "/testing").exists():
 print("Checking directories... OK")
 
 
-temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected --view-img --augment --save-crop --nosave"
+temp = detect_commands + " --exist-ok --project " + tempdir + " --name detected --view-img --augment --save-crop"
 del detect_commands
 detect_commands = temp
 del temp
-temp = test_commands + " --exist-ok --project " + tempdir + " --name testing --view-img --save-crop --nosave"
+temp = test_commands + " --exist-ok --project " + tempdir + " --name testing --view-img --save-crop"
 del test_commands
 test_commands = temp
 del temp
