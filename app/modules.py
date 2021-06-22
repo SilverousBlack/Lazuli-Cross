@@ -258,7 +258,7 @@ def test():
             sleep(0.5)
         print(" " * 90, end="\r")
         print("Pending {0} of {1} images | Ongoing: {2} | Completed: {3} | Time: {4:.2f}".format(pending, len(floc), ongoing, completed, (time_ns() - start) / 1000000000), end="\r")
-        localthreadpool.shutdown(wait=True, cancel_futures=False)
+        localthreadpool.shutdown(wait=True)
         print(" " * 90, end="\r")
         for future in fut.as_completed(threads):
             thr = threads[future]
