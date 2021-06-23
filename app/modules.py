@@ -272,4 +272,4 @@ def test():
         print("Finished Processing Images")
         print(topt)
         yolodetect.detect(**vars(topt))
-        flush()
+        
