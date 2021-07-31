@@ -47,4 +47,3 @@ b1.grid(row=0, column=1, padx= 10, pady=10)
 
 b2 = Button(f3, text = "Test Image", bg = '#5a7982', fg = 'white', command = function)
 b2.grid(row=0, column=2, padx=10, pady=10)
-
